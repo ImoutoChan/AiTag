@@ -37,7 +37,6 @@ python aitag.py "--dry-run"
 ```
 
 ## Build
-
 ```powershell
 pyinstaller --onedir --add-data "model;model" aitag.py
 ```
