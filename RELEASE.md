@@ -14,4 +14,4 @@ or
 ./aitag.exe "c:\images\1.png" "c:\images\2.png" "c:\images\3.png" "c:\images\4.png"
 ```
 
-The tag results will be stored in files named {md5}.json in the current working folder
+The tag results will be stored in files named {md5}.json in the current working folder  

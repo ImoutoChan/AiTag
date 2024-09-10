@@ -2,21 +2,54 @@ name: Build AiTag App
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - master
         
 permissions:
   contents: write
 
 jobs:
+  filter:
+      name: Determine which jobs to run
+      runs-on: ubuntu-latest
+      outputs:
+        tagchecker: ${{ steps.tagchecker.outputs.should-run }}
+
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+          with:
+            fetch-depth: 0
+
+        - name: Check for tag
+          id: tagchecker
+          run: |
+            tag=$(git describe --tags --exact-match 2>/dev/null || echo "")
+            if [ -z "$tag" ]; then
+              echo "should-run=false" >> $GITHUB_OUTPUT
+            else
+              echo "should-run=true" >> $GITHUB_OUTPUT
+            fi
+
   build:
     runs-on: windows-latest
+    needs: filter
+    if: needs.filter.outputs.tagchecker == 'true'
 
     steps:
       - name: Checkout code
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           fetch-depth: 0
+
+      # So bc of a stupid design decision github cache can't be reused between branches or different TAGS, 
+      # making it useless for tag builds. That's why we need to build on the master branch and validate that the current commit has a tag.
+      - name: Check for tag
+        run: |
+          if [ -z "${{ github.ref_type }}" ] || [ "${{ github.ref_type }}" != "tag" ]; then
+            echo "No tag found, skipping build."
+            exit 0
+          fi
 
       - name: Cache model, deepdanboru
         id: cache-model
