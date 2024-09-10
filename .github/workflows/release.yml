@@ -13,7 +13,17 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Cache model, deepdanboru
+        id: cache-model
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
+        with:
+          path: |
+            model
+            deepdanbooru
+          key: ${{ runner.os }}-cache-model
+
       - name: Get latest DeepDanbooru
+        if: steps.cache-model.outputs.cache-hit != 'true'
         run: |
           git clone https://github.com/KichangKim/DeepDanbooru Source
           Copy-Item ./Source/deepdanbooru . -Recurse -Force
@@ -21,6 +31,7 @@ jobs:
         shell: powershell
 
       - name: Prepare DeepDanbooru model
+        if: steps.cache-model.outputs.cache-hit != 'true'
         run: |
           $zipUrl = "https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip"
           $zipPath = "$Pwd\deepdanbooru.zip"
@@ -50,14 +61,6 @@ jobs:
           Remove-Item $zipPath -Force
         shell: powershell
 
-      - name: Cache model, deepdanboru
-        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
-        with:
-          path: |
-            model
-            deepdanbooru
-          key: ${{ runner.os }}
-
       - name: Install GitVersion
         uses: GitTools/actions/gitversion/setup@a41619580c25efb59dfc062e92990914141abcad # v0.10.2
         with:
@@ -75,23 +78,25 @@ jobs:
       - name: Run GitVersion
         id:   gitversion
         uses: GitTools/actions/gitversion/execute@a41619580c25efb59dfc062e92990914141abcad # v0.10.2
-  
+
       - name: Install Python
         run: choco install python --version=3.10.11
-
-      - name: Set up Python environment
-        run: |
-          python -m venv .venv
-          .\.venv\Scripts\activate
-          pip install --upgrade pips
-          pip install -r requirements.txt
-
+  
       - name: Cache .venv
+        id: cache-venv
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
         with:
           path: |
             .venv
           key: ${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Set up Python environment
+        if: steps.cache-venv.outputs.cache-hit != 'true'
+        run: |
+          python -m venv .venv
+          .\.venv\Scripts\activate
+          pip install --upgrade pips
+          pip install -r requirements.txt
 
       - name: Build the application
         run: |
