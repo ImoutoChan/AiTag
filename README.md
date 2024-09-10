@@ -1,6 +1,22 @@
 Ai tagging for danbooru-like pictures
 
-## Set Up (powershell)
+## Simple usage
+
+1. Download [latest release](https://github.com/ImoutoChan/AiTag/releases/latest)
+2. Extract zip archive to a folder
+3. Run
+
+```powershell
+./aitag.exe --dry-run
+```
+or
+
+```powershell
+./aitag.exe "c:\images\1.png" "c:\images\2.png" "c:\images\3.png" "c:\images\4.png"
+```
+
+## Advanced 
+## Set up repo (powershell)
 
 ### get latest deepdanbooru (not nessesary)
 ```powershell

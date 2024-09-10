@@ -54,6 +54,10 @@ jobs:
           $zipPath = "$Pwd\deepdanbooru.zip"
           $extractPath = "$Pwd\model"
           Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -eq 0) {
+              Write-Error "Can't load model"
+              exit 1
+          }
           if (-not (Test-Path $extractPath)) { New-Item -Path $extractPath -ItemType Directory }
           Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
           Remove-Item $zipPath -Force
@@ -65,22 +69,19 @@ jobs:
           pyinstaller --onedir --add-data "model;model" aitag.py
         shell: powershell
 
-      ### Run a test of the built application
       - name: Test run of the built application
         run: |
           .\dist\aitag\aitag.exe --dry-run
         shell: powershell
 
-      ### Package the built application as a ZIP
       - name: Package built application
         run: |
           Compress-Archive -Path .\dist\aitag\* -DestinationPath aitag_app_v${{ steps.gitversion.outputs.majorMinorPatch }}.zip
         shell: powershell
 
-      ### Upload ZIP to release
       - name: Upload app to github release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1.0.0
         with:
           files: ./aitag_app_v*.*
-          body: AiTag ${{ steps.gitversion.outputs.majorMinorPatch }}
+          body_path: ./RELEASE.md
           name: AiTag ${{ steps.gitversion.outputs.majorMinorPatch }}
