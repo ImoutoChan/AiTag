@@ -13,6 +13,11 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
+        with:
+          fetch-depth: 0
+
       - name: Cache model, deepdanboru
         id: cache-model
         uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
@@ -69,11 +74,6 @@ jobs:
       - uses: actions/setup-dotnet@3447fd6a9f9e57506b15f895c5b76d3b197dc7c2 # v3.2.0
         with:
           dotnet-version: '3.1.x'
-
-      - name: Checkout code
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
-        with:
-          fetch-depth: 0
 
       - name: Run GitVersion
         id:   gitversion
