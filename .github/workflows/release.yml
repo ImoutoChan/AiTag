@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   filter:
-      name: Determine which jobs to run
+      name: Skip when no tag
       runs-on: ubuntu-latest
       outputs:
         tagchecker: ${{ steps.tagchecker.outputs.should-run }}
@@ -32,6 +32,7 @@ jobs:
             fi
 
   build:
+    name: Build and release
     runs-on: windows-latest
     needs: filter
     if: needs.filter.outputs.tagchecker == 'true'
