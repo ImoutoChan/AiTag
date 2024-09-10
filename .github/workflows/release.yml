@@ -25,11 +25,25 @@ jobs:
           $zipUrl = "https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip"
           $zipPath = "$Pwd\deepdanbooru.zip"
           $extractPath = "$Pwd\model"
-          Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
-          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -ne 598286910) {
+          $retryCount = 3
+          $retryDelay = 10
+          $retry = 0
+          do {
+            Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+            if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -ne 598286910) {
               Write-Error (Get-Item $zipPath).Length
               Write-Error "Can't load model"
-              exit 1
+              $retry++
+              Start-Sleep -Seconds $retryDelay
+            } else {
+              $retry = $retryCount
+            }
+          } while ($retry -lt $retryCount)
+          if ($retry -eq $retryCount) {
+            Write-Host "Model downloaded successfully"
+          } else {
+            Write-Error "Failed to download model after $retryCount attempts"
+            exit 1
           }
           if (-not (Test-Path $extractPath)) { New-Item -Path $extractPath -ItemType Directory }
           Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
