@@ -9,6 +9,8 @@ permissions:
   contents: write
 
 jobs:
+  # So bc of a stupid design decision github cache can't be reused between branches or different TAGS, 
+  # making it useless for tag builds. That's why we need to build on the master branch and validate that the current commit has a tag.
   filter:
       name: Skip when no tag
       runs-on: ubuntu-latest
@@ -42,15 +44,6 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608 # v4.1.0
         with:
           fetch-depth: 0
-
-      # So bc of a stupid design decision github cache can't be reused between branches or different TAGS, 
-      # making it useless for tag builds. That's why we need to build on the master branch and validate that the current commit has a tag.
-      - name: Check for tag
-        run: |
-          if [ -z "${{ github.ref_type }}" ] || [ "${{ github.ref_type }}" != "tag" ]; then
-            echo "No tag found, skipping build."
-            exit 0
-          fi
 
       - name: Cache model, deepdanboru
         id: cache-model
