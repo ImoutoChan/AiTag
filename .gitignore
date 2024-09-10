@@ -3,3 +3,4 @@
 /model/*
 /dist/*
 /aitag.spec
+/**/__pycache__/**

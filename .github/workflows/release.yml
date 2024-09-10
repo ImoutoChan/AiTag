@@ -146,6 +146,7 @@ jobs:
       - name: Upload app to github release
         uses: softprops/action-gh-release@de2c0eb89ae2a093876385947365aca7b0e5f844 # v1.0.0
         with:
+          tag_name: v${{ steps.gitversion.outputs.majorMinorPatch }}
           files: ./aitag_app_v*.*
           body_path: ./RELEASE.md
           name: AiTag ${{ steps.gitversion.outputs.majorMinorPatch }}
