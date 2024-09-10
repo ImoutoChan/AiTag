@@ -54,7 +54,7 @@ jobs:
           $zipPath = "$Pwd\deepdanbooru.zip"
           $extractPath = "$Pwd\model"
           Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
-          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -eq 0) {
+          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -ne 598286910) {
               Write-Error "Can't load model"
               exit 1
           }
