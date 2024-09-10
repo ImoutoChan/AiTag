@@ -13,6 +13,37 @@ jobs:
     runs-on: windows-latest
 
     steps:
+      - name: Get latest DeepDanbooru
+        run: |
+          git clone https://github.com/KichangKim/DeepDanbooru Source
+          Copy-Item ./Source/deepdanbooru . -Recurse -Force
+          Remove-Item ./Source -Force -Recurse
+        shell: powershell
+
+      - name: Prepare DeepDanbooru model
+        run: |
+          $zipUrl = "https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip"
+          $zipPath = "$Pwd\deepdanbooru.zip"
+          $extractPath = "$Pwd\model"
+          Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
+          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -ne 598286910) {
+              Write-Error (Get-Item $zipPath).Length
+              Write-Error "Can't load model"
+              exit 1
+          }
+          if (-not (Test-Path $extractPath)) { New-Item -Path $extractPath -ItemType Directory }
+          Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
+          Remove-Item $zipPath -Force
+        shell: powershell
+
+      - name: Cache model, deepdanboru
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
+        with:
+          path: |
+            model
+            deepdanbooru
+          key: ${{ runner.os }}
+
       - name: Install GitVersion
         uses: GitTools/actions/gitversion/setup@a41619580c25efb59dfc062e92990914141abcad # v0.10.2
         with:
@@ -41,27 +72,12 @@ jobs:
           pip install --upgrade pips
           pip install -r requirements.txt
 
-      - name: Get latest DeepDanbooru
-        run: |
-          git clone https://github.com/KichangKim/DeepDanbooru Source
-          Copy-Item ./Source/deepdanbooru . -Recurse -Force
-          Remove-Item ./Source -Force -Recurse
-        shell: powershell
-
-      - name: Prepare DeepDanbooru model
-        run: |
-          $zipUrl = "https://github.com/KichangKim/DeepDanbooru/releases/download/v3-20211112-sgd-e28/deepdanbooru-v3-20211112-sgd-e28.zip"
-          $zipPath = "$Pwd\deepdanbooru.zip"
-          $extractPath = "$Pwd\model"
-          Invoke-WebRequest -Uri $zipUrl -OutFile $zipPath
-          if (-not (Test-Path $zipPath) -or (Get-Item $zipPath).Length -ne 598286910) {
-              Write-Error "Can't load model"
-              exit 1
-          }
-          if (-not (Test-Path $extractPath)) { New-Item -Path $extractPath -ItemType Directory }
-          Expand-Archive -Path $zipPath -DestinationPath $extractPath -Force
-          Remove-Item $zipPath -Force
-        shell: powershell
+      - name: Cache .venv
+        uses: actions/cache@704facf57e6136b1bc63b828d79edcd491f0ee84 # v3.0.0
+        with:
+          path: |
+            .venv
+          key: ${{ runner.os }}-${{ hashFiles('**/requirements.txt') }}
 
       - name: Build the application
         run: |
